@@ -1,0 +1,32 @@
+# Reusable CI Slack Notification Workflow
+# Usage: uses: wouterhendriks/github/.github/workflows/ci-slack.yml@v1
+#
+# Required secret in calling repo: SLACK_WEBHOOK_URL
+
+name: CI Slack Notifications
+
+on:
+  workflow_call:
+    inputs:
+      message:
+        description: "The Slack message to send (supports Slack mrkdwn formatting)"
+        required: true
+        type: string
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: "Slack Incoming Webhook URL"
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ${{ toJSON(inputs.message) }}
+            }
