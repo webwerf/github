@@ -41,6 +41,15 @@ jobs:
   check-and-notify:
     runs-on: ubuntu-latest
     steps:
+      - name: Prepare commit message
+        id: commit
+        run: |
+          # Take first line only, escape backslashes, double quotes, and control chars for JSON
+          MSG=$(echo "$RAW_MSG" | head -1 | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g')
+          echo "msg=$MSG" >> "$GITHUB_OUTPUT"
+        env:
+          RAW_MSG: ${{ github.event.head_commit.message }}
+
       - name: Check for recovery
         id: recovery
         if: inputs.status == 'success'
@@ -83,7 +92,7 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "🔴 *CI failed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.event.head_commit.message }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+              "text": "🔴 *CI failed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ steps.commit.outputs.msg }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
             }
 
       - name: Send recovery notification
@@ -94,7 +103,7 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "🟢 *CI fixed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.event.head_commit.message }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+              "text": "🟢 *CI fixed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ steps.commit.outputs.msg }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
             }
 
       - name: Send success notification (debug)
@@ -105,5 +114,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "✅ *CI passed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.event.head_commit.message }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+              "text": "✅ *CI passed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ steps.commit.outputs.msg }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
             }
