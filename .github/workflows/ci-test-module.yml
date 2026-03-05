@@ -1,0 +1,50 @@
+# Reusable CI Test Module Workflow
+# Usage: uses: webwerf/github/.github/workflows/ci-test-module.yml@v2
+#
+# Required secret in calling repo: MODULES_TOKEN
+#
+# Example usage:
+#   jobs:
+#     test:
+#       uses: webwerf/github/.github/workflows/ci-test-module.yml@v2
+#       secrets: inherit
+
+name: CI Test Module
+
+on:
+  workflow_call:
+    secrets:
+      MODULES_TOKEN:
+        description: "GitHub token for private repo access"
+        required: true
+
+jobs:
+  runtest-vs-main:
+    runs-on: ubuntu-latest
+    env:
+      CI_PROJECT_DIR: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure git for private GitHub repos
+        run: git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Run tests against main
+        run: curl -s https://build.webhare.dev/ci/scripts/testmodule.sh | bash -s -- -w main
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-artifacts
+          path: artifacts
+          retention-days: 7
+
+      - name: Publish test results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: artifacts/junit.xml
+          fail_on_failure: false
