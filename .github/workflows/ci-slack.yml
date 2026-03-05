@@ -92,7 +92,7 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "🔴 *CI failed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ steps.commit.outputs.msg }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+              "text": "🔴 *CI failed*\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ steps.commit.outputs.msg }}\nAuthor: ${{ github.actor }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>\n```/github-build-fixer ${{ github.repository }}/actions/runs/${{ github.run_id }}```"
             }
 
       - name: Send recovery notification
