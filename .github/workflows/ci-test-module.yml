@@ -8,6 +8,9 @@
 #     test:
 #       uses: webwerf/github/.github/workflows/ci-test-module.yml@v2
 #       secrets: inherit
+#
+# Used by:
+#   - webwerf/wvuaw (.github/workflows/test.yml)
 
 name: CI Test Module
 
