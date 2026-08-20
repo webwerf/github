@@ -1,5 +1,5 @@
 # Reusable CI Slack Notification Workflow
-# Usage: uses: wouterhendriks/github/.github/workflows/ci-slack.yml@v2
+# Usage: uses: webwerf/github/.github/workflows/ci-slack.yml@v2
 #
 # Required secret in calling repo: SLACK_WEBHOOK_URL
 #
@@ -7,7 +7,7 @@
 #   notify:
 #     needs: build
 #     if: always() && github.ref == 'refs/heads/master'
-#     uses: wouterhendriks/github/.github/workflows/ci-slack.yml@v2
+#     uses: webwerf/github/.github/workflows/ci-slack.yml@v2
 #     with:
 #       status: ${{ needs.build.result }}
 #       workflow_name: test.yml
