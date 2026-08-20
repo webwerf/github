@@ -58,24 +58,32 @@ jobs:
           script: |
             const branch = context.ref.replace('refs/heads/', '');
 
+            // Identify the previous run by id, never by list position. Taking workflowRuns[1]
+            // assumes index 0 is always this run, and reads one run too far back whenever the
+            // in-progress run is absent from the response. That only misfires after a SINGLE
+            // red run, because during a failure streak the older run is red as well, so it
+            // survives every test done on a streak. Asking for completed runs already drops
+            // this run (it is in progress while this step executes); the id check is the guard.
             const runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: '${{ inputs.workflow_name }}',
               branch: branch,
-              per_page: 2
+              status: 'completed',
+              per_page: 5
             });
 
-            const workflowRuns = runs.data.workflow_runs;
+            // Skip cancelled and skipped runs: they carry no verdict to recover from.
+            const previous = runs.data.workflow_runs.find(run =>
+              run.id !== context.runId && ['success', 'failure'].includes(run.conclusion));
 
-            if (workflowRuns.length < 2) {
-              console.log('Not enough workflow runs to determine recovery');
+            if (!previous) {
+              console.log('No earlier conclusive run on this branch to compare against');
               core.setOutput('is_recovery', 'false');
               return;
             }
 
-            const previous = workflowRuns[1];
-            console.log(`Previous run conclusion: ${previous.conclusion}`);
+            console.log(`Previous run ${previous.id} (${previous.head_sha.slice(0, 8)}) conclusion: ${previous.conclusion}`);
 
             if (previous.conclusion === 'failure') {
               console.log('Previous run failed - this is a recovery!');
